@@ -187,14 +187,16 @@ def main():
                             base_pts = p.get('pts', 0)
                             is_captain = p.get('is_captain', False)
                             captain_multiplier = p.get('captain_multiplier', 1)
-                            started_from_bench = p.get('started_from_bench', False)
+                            court_position = p.get('court_position', 0)
+
+                            was_on_bench = court_position in [7,8,9,10]
                             final_pts = calculate_player_points(p)
 
                             # Build modifier string
                             modifiers = []
                             if is_captain:
                                 modifiers.append(f"x{captain_multiplier}")
-                            if started_from_bench:
+                            if was_on_bench:
                                 modifiers.append("÷2")
                             modifier_str = " ".join(modifiers) if modifiers else "-"
 
@@ -207,7 +209,7 @@ def main():
                                 'Final Points': final_pts,
                                 'Quotation': p.get('quotation', 0),
                                 'Captain': '⭐' if is_captain else '',
-                                'Bench': '🪑' if started_from_bench else ''
+                                'Bench': '🪑' if was_on_bench else ''
                             })
 
                         players_df = pd.DataFrame(players_data)
@@ -215,39 +217,6 @@ def main():
                     else:
                         st.info("No player data available")
 
-            # Save results option
-            st.markdown("---")
-
-            results = [
-                {
-                    'rank': rank,
-                    'team_name': ts.team_name,
-                    'team_id': ts.team_id,
-                    'total_pts': ts.total_pts,
-                    'player_count': ts.player_count,
-                    'players': [
-                        {
-                            'name': f"{p.get('first_name', '')} {p.get('last_name', '')}",
-                            'base_pts': p.get('pts', 0),
-                            'final_pts': calculate_player_points(p),
-                            'is_captain': p.get('is_captain', False),
-                            'captain_multiplier': p.get('captain_multiplier', 1),
-                            'started_from_bench': p.get('started_from_bench', False),
-                            'position': p.get('position', {}).get('name', 'Unknown')
-                        }
-                        for p in ts.players
-                    ]
-                }
-                for rank, ts in enumerate(team_scores, 1)
-            ]
-
-            json_str = json.dumps(results, indent=2)
-            st.download_button(
-                label="📥 Download Results (JSON)",
-                data=json_str,
-                file_name="team_rankings.json",
-                mime="application/json"
-            )
 
 if __name__ == "__main__":
     main()
